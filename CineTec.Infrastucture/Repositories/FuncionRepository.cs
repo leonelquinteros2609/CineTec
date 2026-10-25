@@ -77,5 +77,13 @@ namespace CineTec.Infrastructure.Repositories
 
             return resultado;
         }
+        public async Task<Funcion?> GetByIdAsync(int id)
+        {
+            return await _cineTecContext.Funciones
+                .Include(f => f.Pelicula)
+                .Include(f => f.Sala)
+                .ThenInclude(s => s.Butacas)
+                .FirstOrDefaultAsync(f => f.Id == id);
+        }
     }
 }

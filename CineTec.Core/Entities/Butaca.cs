@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 namespace CineTec.Core.Entities;
 
 public partial class Butaca

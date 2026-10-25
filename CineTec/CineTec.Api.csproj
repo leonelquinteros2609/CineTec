@@ -18,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CineTec.Core\CineTec.Core.csproj" />
     <ProjectReference Include="..\CineTec.Infrastucture\CineTec.Infrastucture.csproj" />
-    <ProjectReference Include="..\CineTec.Services\CineTec.Services.csproj" />
+   
   </ItemGroup>
 
 </Project>

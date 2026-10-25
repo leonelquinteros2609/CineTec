@@ -15,6 +15,8 @@ public partial class CineTecContext : DbContext
     public virtual DbSet<Sala> Salas { get; set; } = null!;
     public virtual DbSet<Funcion> Funciones { get; set; } = null!;
     public virtual DbSet<Butaca> Butacas { get; set; } = null!;
+    public virtual DbSet<Reserva> Reservas { get; set; } = null!;
+    public virtual DbSet<ReservaButaca> ReservaButacas { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

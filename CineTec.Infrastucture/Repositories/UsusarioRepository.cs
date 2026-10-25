@@ -54,5 +54,11 @@ namespace CineTec.Infrastructure.Repositories
             var resultado = (true, "Inicio de sesión exitoso", (object)new { usuario.Id, usuario.Nombre, usuario.Correo, usuario.Rol });
             return resultado;
         }
+
+        // Método agregado para obtener usuario por ID (requerido para reservas - CU-06)
+        public async Task<Usuario?> GetUserByIdAsync(int id)
+        {
+            return await _cineTecContext.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+        }
     }
 }

@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CineTec.Core.DTOs;
+using CineTec.Core.Entities;
 
-namespace CineTec.Core.Interfaces
+namespace CineTec.Core.Interfaces;
+
+public interface IPeliculaService
 {
-    internal class IPeliculaService
-    {
-    }
+    Task<Pelicula> CrearPeliculaAsync(PeliculaCreateUpdateDto dto);
+    Task ActualizarPeliculaAsync(int id, PeliculaCreateUpdateDto dto);
+    Task DarDeBajaPeliculaAsync(int id);
 }

@@ -26,5 +26,20 @@ namespace CineTec.Infrastructure.Repositories
 
             return peliculas;
         }
+
+        public Task<Pelicula?> GetByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task InsertAsync(Pelicula pelicula)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateAsync(Pelicula pelicula)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
