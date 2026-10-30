@@ -1,10 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using CineTec.Core.DTOs;
+using CineTec.Core.Entities;
+using System.Threading.Tasks;
 
 namespace CineTec.Core.Interfaces
 {
-    internal class IUsuarioService
+    public interface IUsuarioService
     {
+        Task<AuthResponseDto> RegisterAsync(UsuarioDto dto);
+        Task<AuthResponseDto> LoginAsync(LoginDto dto);
+        Task<Usuario?> GetUserByIdAsync(int id);
     }
 }

@@ -1,58 +1,75 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using CineTec.Core.DTOs;
 using CineTec.Core.Entities;
 using CineTec.Core.Interfaces;
 using CineTec.Infrastructure.Data;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CineTec.Infrastructure.Repositories
 {
-    public class UsuarioRepository : IUsuarioRepository
+    public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
     {
-        private readonly CineTecContext _cineTecContext;
-
-        public UsuarioRepository(CineTecContext cineTecContext)
+        public UsuarioRepository(CineTecContext context) : base(context)
         {
-            _cineTecContext = cineTecContext;
         }
 
         public async Task<(bool Success, string Message, object? Data)> RegisterAsync(UsuarioDto dto)
         {
-            var existe = await _cineTecContext.Usuarios.AnyAsync(u => u.Correo == dto.Correo);
+            var email = dto.GetEmail();
+            var existe = await _entities.AnyAsync(u => u.Email == email);
             if (existe)
             {
                 return (false, "El correo electrónico ya se encuentra registrado", null);
             }
 
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var usuario = new Usuario
             {
                 Nombre = dto.Nombre,
-                Correo = dto.Correo,
-                PasswordHash = dto.Password, // Comparación y guardado directo en texto plano
-                Rol = string.IsNullOrEmpty(dto.Rol) ? "Cliente" : dto.Rol,
+                Email = email,
+                PasswordHash = passwordHash,
+                Rol = string.IsNullOrWhiteSpace(dto.Rol) ? "Cliente" : dto.Rol,
                 FechaCreacion = DateTime.Now
             };
 
-            _cineTecContext.Usuarios.Add(usuario);
-            await _cineTecContext.SaveChangesAsync();
+            await Add(usuario);
 
-            var resultado = (true, "Usuario registrado exitosamente", (object)new { usuario.Id, usuario.Nombre, usuario.Correo, usuario.Rol });
-            return resultado;
+            return (true, "Usuario registrado exitosamente", new { usuario.Id, usuario.Nombre, Email = usuario.Email, usuario.Rol });
         }
 
         public async Task<(bool Success, string Message, object? Data)> LoginAsync(LoginDto dto)
         {
-            var usuario = await _cineTecContext.Usuarios.FirstOrDefaultAsync(u => u.Correo == dto.Correo);
+            var email = dto.GetEmail();
+            var usuario = await _entities.FirstOrDefaultAsync(u => u.Email == email);
 
-            if (usuario == null || usuario.PasswordHash != dto.Password)
+            if (usuario == null)
             {
                 return (false, "Credenciales inválidas", null);
             }
 
-            var resultado = (true, "Inicio de sesión exitoso", (object)new { usuario.Id, usuario.Nombre, usuario.Correo, usuario.Rol });
-            return resultado;
+            bool passwordValida = false;
+            try
+            {
+                passwordValida = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash);
+            }
+            catch
+            {
+                // Soporte para contraseñas en texto plano heredadas
+                passwordValida = (usuario.PasswordHash == dto.Password);
+            }
+
+            if (!passwordValida && usuario.PasswordHash == dto.Password)
+            {
+                passwordValida = true;
+            }
+
+            if (!passwordValida)
+            {
+                return (false, "Credenciales inválidas", null);
+            }
+
+            return (true, "Inicio de sesión exitoso", new { usuario.Id, usuario.Nombre, Email = usuario.Email, usuario.Rol });
         }
     }
 }

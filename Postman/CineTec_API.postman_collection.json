@@ -1,0 +1,361 @@
+{
+  "info": {
+    "_postman_id": "c1f8e21a-9823-4567-b89a-cinetec2026",
+    "name": "CineTec API - Coleccion Completa",
+    "description": "Coleccion de pruebas ordenadas por Caso de Uso (CU-01 a CU-08) y Reglas de Negocio (RN-01 a RN-11) para el proyecto CineTec de la Universidad Catolica Boliviana San Pablo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "CU-01 - Autenticacion",
+      "item": [
+        {
+          "name": "Login Administrador",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set('admin_token', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@cinetec.com\",\n  \"password\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Taquillero",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set('taquilla_token', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"taquilla@cinetec.com\",\n  \"password\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Registrar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set('cliente_token', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario Demo\",\n  \"email\": \"demo@cinetec.com\",\n  \"password\": \"Password123!\",\n  \"rol\": \"Cliente\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CU-02 - Cartelera y Butacas",
+      "item": [
+        {
+          "name": "Listar Peliculas Activas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/movies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies"]
+            }
+          }
+        },
+        {
+          "name": "Listar Funciones Activas y Futuras (RN-04)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/showtimes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "showtimes"]
+            }
+          }
+        },
+        {
+          "name": "Mapa de Butacas y Disponibilidad (RN-01, RN-02)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/showtimes/1/seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "showtimes", "1", "seats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CU-03 - Reservar Butacas",
+      "item": [
+        {
+          "name": "Crear Reserva (Bloqueo 10 min - RN-01, RN-02, RN-03)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.compraId) {",
+                  "    pm.environment.set('compra_id', jsonData.data.compraId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{cliente_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"funcionId\": 1,\n  \"butacaIds\": [7, 8]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CU-04 - Confirmar Compra y Pagar",
+      "item": [
+        {
+          "name": "Pagar Compra Pendiente (RN-02, RN-09, RN-10, RN-11)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.entradas && jsonData.data.entradas.length > 0) {",
+                  "    pm.environment.set('ticket_code', jsonData.data.entradas[0].codigoUnico);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{cliente_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"Tarjeta\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{compra_id}}/pay",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "{{compra_id}}", "pay"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CU-05 - Consultar Mis Compras",
+      "item": [
+        {
+          "name": "Historial de Compras (RN-10)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{cliente_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Detalle de una Compra",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{cliente_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{compra_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "{{compra_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CU-06 - Cancelar Compra",
+      "item": [
+        {
+          "name": "Cancelar Compra (RN-05, RN-09, RN-10)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{cliente_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{compra_id}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "{{compra_id}}", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CU-08 - Validar Entrada en Puerta",
+      "item": [
+        {
+          "name": "Validar Ticket (Taquillero - RN-09)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{taquilla_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigoUnico\": \"{{ticket_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CU-07 - Gestion Administrador",
+      "item": [
+        {
+          "name": "Listar Salas",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rooms",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rooms"]
+            }
+          }
+        },
+        {
+          "name": "Crear Pelicula",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Dune: Parte Dos\",\n  \"sinopsis\": \"Paul Atreides se une a Chani y a los Fremen mientras busca venganza contra los conspiradores que destruyeron a su familia.\",\n  \"duracionMin\": 166,\n  \"clasificacion\": \"PG-13\",\n  \"genero\": \"Ciencia Ficcion\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/movies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies"]
+            }
+          }
+        },
+        {
+          "name": "Crear Funcion (RN-07)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"peliculaId\": 1,\n  \"salaId\": 2,\n  \"fechaHoraInicio\": \"2026-11-10T19:00:00\",\n  \"precioBase\": 40.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/showtimes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "showtimes"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

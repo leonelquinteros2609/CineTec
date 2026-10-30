@@ -1,5 +1,6 @@
 <Solution>
+  <Project Path="CineTec/CineTec.Api.csproj" DefaultStartup="true" />
   <Project Path="CineTec.Core/CineTec.Core.csproj" />
   <Project Path="CineTec.Infrastucture/CineTec.Infrastucture.csproj" />
-  <Project Path="CineTec/CineTec.Api.csproj" />
+  <Project Path="CineTec.Services/CineTec.Services.csproj" />
 </Solution>
