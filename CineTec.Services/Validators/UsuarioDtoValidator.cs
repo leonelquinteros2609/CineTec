@@ -21,8 +21,7 @@ namespace CineTec.Services.Validators
                 .MaximumLength(255).WithMessage("El correo no puede exceder 255 caracteres.");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("La contraseña es obligatoria.")
-                .MinimumLength(4).WithMessage("La contraseña debe tener al menos 4 caracteres.");
+                .NotEmpty().WithMessage("La contraseña es obligatoria.");
 
             RuleFor(x => x.Rol)
                 .Must(rol => string.IsNullOrEmpty(rol) || rol == "Cliente" || rol == "Taquillero" || rol == "Administrador")
