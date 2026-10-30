@@ -1,7 +1,4 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using CineTec.Api.Filters;
 using CineTec.Core.Interfaces;
 using CineTec.Infrastructure.Data;
@@ -31,63 +28,28 @@ namespace CineTec.Api
             builder.Services.AddScoped<IFuncionRepository, FuncionRepository>();
             #endregion
 
-            #region Inyección de Dependencias - Servicios de Negocio
+            #region Inyección de Dependencias - Servicios de Negocio (CU-01 a CU-04)
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUsuarioService, UsuarioService>();
             builder.Services.AddScoped<IPeliculaService, PeliculaService>();
             builder.Services.AddScoped<IFuncionService, FuncionService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
-            builder.Services.AddScoped<ITicketService, TicketService>();
-            builder.Services.AddScoped<ISalaService, SalaService>();
             #endregion
 
             #region AutoMapper
-            builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(CineTecProfile).Assembly));
+            builder.Services.AddAutoMapper(typeof(CineTecProfile).Assembly);
             #endregion
 
-            #region Validadores FluentValidation
+            #region Validadores FluentValidation (CU-01 a CU-04)
             builder.Services.AddScoped<UsuarioDtoValidator>();
             builder.Services.AddScoped<LoginDtoValidator>();
-            builder.Services.AddScoped<CrearPeliculaDtoValidator>();
-            builder.Services.AddScoped<ActualizarPeliculaDtoValidator>();
-            builder.Services.AddScoped<CrearFuncionDtoValidator>();
-            builder.Services.AddScoped<ActualizarFuncionDtoValidator>();
             builder.Services.AddScoped<CrearReservaDtoValidator>();
             builder.Services.AddScoped<PagarReservaDtoValidator>();
-            builder.Services.AddScoped<ValidarTicketDtoValidator>();
             #endregion
-
-            #region Configuración de Autenticación y JWT
-            var jwtKey = builder.Configuration["Jwt:Key"] ?? "CineTec_Super_Secret_Key_For_JWT_Authentication_2026_UCB!";
-            var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "CineTecApi";
-            var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "CineTecClient";
-
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtIssuer,
-                    ValidAudience = jwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
 
             builder.Services.AddAuthorization();
-            #endregion
 
-            // Configurar Controllers y suprimir el filtro automático de ModelState para usar ExceptionHandlingMiddleware
+            // Configurar Controllers y suprimir el filtro automático de ModelState para usar ExceptionHandlingMiddleware (patrón SocialMediaStudent)
             builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
             {
                 options.SuppressModelStateInvalidFilter = true;
@@ -101,7 +63,10 @@ namespace CineTec.Api
             // Middleware global de manejo de excepciones estructuradas (siguiendo SocialMediaStudent)
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-            // Configure the HTTP request pipeline.
+            // Middleware de autenticación JWT
+            app.UseMiddleware<JwtAuthenticationMiddleware>();
+
+            // Configurar Swagger/OpenAPI
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
@@ -109,7 +74,6 @@ namespace CineTec.Api
 
             app.UseHttpsRedirection();
 
-            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
