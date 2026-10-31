@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using CineTec.Core.DTOs;
 using CineTec.Core.Entities;
+using CineTec.Core.Helpers;
 using CineTec.Core.Interfaces;
 using CineTec.Infrastructure.Data;
 using System;
@@ -23,7 +24,7 @@ namespace CineTec.Infrastructure.Repositories
                 return (false, "El correo electrónico ya se encuentra registrado", null);
             }
 
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            var passwordHash = PasswordHelper.HashPassword(dto.Password);
             var usuario = new Usuario
             {
                 Nombre = dto.Nombre,
@@ -48,21 +49,7 @@ namespace CineTec.Infrastructure.Repositories
                 return (false, "Credenciales inválidas", null);
             }
 
-            bool passwordValida = false;
-            try
-            {
-                passwordValida = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash);
-            }
-            catch
-            {
-                // Soporte para contraseñas en texto plano heredadas
-                passwordValida = (usuario.PasswordHash == dto.Password);
-            }
-
-            if (!passwordValida && usuario.PasswordHash == dto.Password)
-            {
-                passwordValida = true;
-            }
+            bool passwordValida = PasswordHelper.VerifyPassword(dto.Password, usuario.PasswordHash);
 
             if (!passwordValida)
             {

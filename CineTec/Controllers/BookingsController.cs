@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CineTec.Api.Response;
 using CineTec.Core.DTOs;
@@ -14,7 +12,6 @@ namespace CineTec.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class BookingsController : ControllerBase
     {
         private readonly IBookingService _bookingService;
@@ -52,7 +49,7 @@ namespace CineTec.Api.Controllers
             var userId = GetCurrentUserId();
             var reserva = await _bookingService.CreateBookingAsync(userId, dto);
 
-            return CreatedAtAction(nameof(GetBookingById), new { id = reserva.CompraId }, new ApiResponse<ReservaResponseDto>(reserva));
+            return StatusCode(201, new ApiResponse<ReservaResponseDto>(reserva));
         }
 
         // CU-04: Confirmar Compra de Entradas (Pagar) (Cliente)
@@ -79,39 +76,9 @@ namespace CineTec.Api.Controllers
             return Ok(new ApiResponse<CompraDetalleDto>(compraPagada));
         }
 
-        // CU-05: Consultar Mis Compras (Cliente)
-        [HttpGet]
-        public async Task<IActionResult> GetMyBookings()
-        {
-            var userId = GetCurrentUserId();
-            var compras = await _bookingService.GetUserBookingsAsync(userId);
-
-            return Ok(new ApiResponse<IEnumerable<CompraDetalleDto>>(compras));
-        }
-
-        // CU-05: Detalle de Compra (Cliente)
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetBookingById(int id)
-        {
-            var userId = GetCurrentUserId();
-            var compra = await _bookingService.GetBookingByIdAsync(userId, id);
-
-            return Ok(new ApiResponse<CompraDetalleDto>(compra));
-        }
-
-        // CU-06: Cancelar Compra (Cliente)
-        [HttpPut("{id}/cancel")]
-        public async Task<IActionResult> CancelBooking(int id)
-        {
-            var userId = GetCurrentUserId();
-            var compraCancelada = await _bookingService.CancelBookingAsync(userId, id);
-
-            return Ok(new ApiResponse<CompraDetalleDto>(compraCancelada));
-        }
-
         private int GetCurrentUserId()
         {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("id") ?? User.FindFirst("sub");
             if (claim != null && int.TryParse(claim.Value, out var id))
             {
                 return id;
