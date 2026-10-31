@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using AutoMapper;
+using CineTec.Infrastructure.Mappings;
 
 namespace CineTec.Services
 {
-    internal class MappingProfile
+    public class MappingProfile : CineTecProfile
     {
     }
 }

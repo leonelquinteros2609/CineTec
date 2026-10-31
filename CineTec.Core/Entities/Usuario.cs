@@ -1,19 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace CineTec.Core.Entities;
-
-public partial class Usuario
+namespace CineTec.Core.Entities
 {
-    public int Id { get; set; }
+    public class Usuario : BaseEntity
+    {
+        public string Nombre { get; set; } = null!;
 
-    public string Nombre { get; set; } = null!;
+        public string Email { get; set; } = null!;
 
-    public string Correo { get; set; } = null!;
+        // Propiedad compatible con código previo
+        public string Correo
+        {
+            get => Email;
+            set => Email = value;
+        }
 
-    public string PasswordHash { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
 
-    public string Rol { get; set; } = null!;
+        public string Rol { get; set; } = "Cliente";
 
-    public DateTime FechaCreacion { get; set; }
+        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+
+        public virtual ICollection<Compra> Compras { get; set; } = new List<Compra>();
+    }
 }

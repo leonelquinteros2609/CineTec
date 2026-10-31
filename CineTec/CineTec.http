@@ -1,6 +1,186 @@
 @CineTec_HostAddress = http://localhost:5227
 
-GET {{CineTec_HostAddress}}/weatherforecast/
+### ==============================================================
+### CU-01: REGISTRARSE E INICIAR SESION (RN-06)
+### ==============================================================
+
+### 1. Iniciar Sesión como Administrador
+# @name loginAdmin
+POST {{CineTec_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@cinetec.com",
+  "password": "1234"
+}
+
+### Guardar Token de Admin
+@adminToken = {{loginAdmin.response.body.data.token}}
+
+### 2. Iniciar Sesión como Taquillero
+# @name loginTaquilla
+POST {{CineTec_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "taquilla@cinetec.com",
+  "password": "1234"
+}
+
+### Guardar Token de Taquillero
+@taquillaToken = {{loginTaquilla.response.body.data.token}}
+
+### 3. Registrar un nuevo Cliente (RN-06)
+# @name registerCliente
+POST {{CineTec_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Ana Morales",
+  "email": "ana.morales@gmail.com",
+  "password": "Password123!",
+  "rol": "Cliente"
+}
+
+### Guardar Token del Cliente
+@clienteToken = {{registerCliente.response.body.data.token}}
+
+
+### ==============================================================
+### CU-02: CONSULTAR CARTELERA Y BUTACAS (RN-04)
+### ==============================================================
+
+### 4. Consultar Cartelera de Películas Activas
+GET {{CineTec_HostAddress}}/api/movies
 Accept: application/json
 
-###
+### 5. Consultar Funciones Activas y Futuras (RN-04)
+GET {{CineTec_HostAddress}}/api/showtimes
+Accept: application/json
+
+### 6. Consultar Funciones con filtro por Película o Fecha
+GET {{CineTec_HostAddress}}/api/showtimes?peliculaId=1
+Accept: application/json
+
+### 7. Consultar Mapa de Butacas de una Función (RN-01, RN-02)
+GET {{CineTec_HostAddress}}/api/showtimes/1/seats
+Accept: application/json
+
+
+### ==============================================================
+### CU-03: RESERVAR BUTACAS (RN-01, RN-02, RN-03, RN-04, RN-11)
+### ==============================================================
+
+### 8. Reservar Butacas (Cliente - Bloqueo temporal por 10 min)
+# @name createBooking
+POST {{CineTec_HostAddress}}/api/bookings
+Authorization: Bearer {{clienteToken}}
+Content-Type: application/json
+
+{
+  "funcionId": 1,
+  "butacaIds": [5, 6]
+}
+
+### Guardar ID de Compra generada
+@compraId = {{createBooking.response.body.data.compraId}}
+
+
+### ==============================================================
+### CU-04: CONFIRMAR COMPRA / PAGAR (RN-02, RN-09, RN-10, RN-11)
+### ==============================================================
+
+### 9. Pagar Reserva Vigente (Simulación de pago y generación de códigos únicos)
+# @name payBooking
+POST {{CineTec_HostAddress}}/api/bookings/{{compraId}}/pay
+Authorization: Bearer {{clienteToken}}
+Content-Type: application/json
+
+{
+  "metodoPago": "Tarjeta"
+}
+
+### Guardar Código Único de la primera entrada para validar
+@codigoTicket = {{payBooking.response.body.data.entradas[0].codigoUnico}}
+
+
+### ==============================================================
+### CU-05: CONSULTAR MIS COMPRAS (RN-10)
+### ==============================================================
+
+### 10. Listar Mis Compras (Cliente)
+GET {{CineTec_HostAddress}}/api/bookings
+Authorization: Bearer {{clienteToken}}
+Accept: application/json
+
+### 11. Consultar Detalle de una Compra
+GET {{CineTec_HostAddress}}/api/bookings/{{compraId}}
+Authorization: Bearer {{clienteToken}}
+Accept: application/json
+
+
+### ==============================================================
+### CU-06: CANCELAR COMPRA (RN-05, RN-09, RN-10)
+### ==============================================================
+
+### 12. Cancelar Compra (Hasta 2 horas antes de la función)
+PUT {{CineTec_HostAddress}}/api/bookings/{{compraId}}/cancel
+Authorization: Bearer {{clienteToken}}
+Accept: application/json
+
+
+### ==============================================================
+### CU-08: VALIDAR ENTRADA EN PUERTA (RN-09)
+### ==============================================================
+
+### 13. Validar Ticket en Puerta (Taquillero)
+POST {{CineTec_HostAddress}}/api/tickets/validate
+Authorization: Bearer {{taquillaToken}}
+Content-Type: application/json
+
+{
+  "codigoUnico": "{{codigoTicket}}"
+}
+
+
+### ==============================================================
+### CU-07: GESTIONAR PELICULAS Y FUNCIONES (ADMINISTRADOR) (RN-07, RN-08)
+### ==============================================================
+
+### 14. Consultar Salas para Programación
+GET {{CineTec_HostAddress}}/api/rooms
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 15. Crear Nueva Película
+# @name createMovie
+POST {{CineTec_HostAddress}}/api/movies
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Oppenheimer",
+  "sinopsis": "La historia del científico estadounidense J. Robert Oppenheimer y su papel en el desarrollo de la bomba atómica.",
+  "duracionMin": 180,
+  "clasificacion": "R",
+  "genero": "Drama Histórico"
+}
+
+@nuevaPeliculaId = {{createMovie.response.body.data.id}}
+
+### 16. Programar Función (Valida RN-07: solapamiento y 15 min de limpieza)
+POST {{CineTec_HostAddress}}/api/showtimes
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "peliculaId": {{nuevaPeliculaId}},
+  "salaId": 2,
+  "fechaHoraInicio": "2026-11-05T18:00:00",
+  "precioBase": 45.00
+}
+
+### 17. Eliminar / Desactivar Película (Valida RN-08: solo desactiva si tiene entradas vendidas)
+DELETE {{CineTec_HostAddress}}/api/movies/{{nuevaPeliculaId}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
